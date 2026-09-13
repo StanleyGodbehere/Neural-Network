@@ -1,0 +1,10 @@
+.env
+.venv
+env/
+venv/
+.vscode/
+__pycache__/
+*.py[codz]
+*$py.class
+*.gz
+*.csv

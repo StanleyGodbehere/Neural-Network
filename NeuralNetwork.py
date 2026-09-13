@@ -12,6 +12,10 @@ def leakyReLU(x):
 def dLeakyReLU(x):
     return np.where(x > 0, 1, 0.01)
 
+def softmax(x):
+    exps = np.exp(x - np.max(x))
+    return exps / np.sum(exps)
+
 class Layer:
     def __init__(self, numInputs, size, activation):
         self.numInputs  = numInputs
@@ -31,6 +35,8 @@ class Layer:
         
         if self.activation == "reLU":
             self.outputs = leakyReLU(self.linearCombinations)
+        elif self.activation == "softmax":
+            self.outputs = softmax(self.linearCombinations)
         else:
             self.outputs = sigmoid(self.linearCombinations)
         return self.outputs
@@ -40,7 +46,7 @@ class NeuralNetwork:
         self.layers = []
         print("Created neural network")
         for i in range(len(layerSizes) - 1):
-            activation = "sigmoid" if i == len(layerSizes) - 2 else "reLU"
+            activation = "softmax" if i == len(layerSizes) - 2 else "reLU"
             self.layers.append(Layer(layerSizes[i], layerSizes[i+1], activation))
             print("Layer",i,":",layerSizes[i],"inputs,",layerSizes[i+1],"neurons (",activation,")")
         print()
@@ -51,18 +57,13 @@ class NeuralNetwork:
         return values
     
     def predict(self, inputs):
-        output = self.processValues(inputs)[0]
-        return 1 if output > 0.5 else 0
+        outputs = self.processValues(inputs)
+        return int(np.argmax(outputs))
     
     def cost(self, inputs, expectedOutputs):
-        outputs   = self.processValues(inputs)
-        totalCost = 0
-        
-        for i in range(len(outputs)):
-            y = expectedOutputs[i]
-            p = outputs[i]
-            totalCost += (-(y*np.log(p)+(1-y)*np.log(1-p)))
-        return totalCost / len(outputs)
+        outputs = self.processValues(inputs)
+        epsilon = 1e-12
+        return -np.sum(np.array(expectedOutputs) * np.log(outputs + epsilon))
     
     def trainBatch(self, inputsList, expectedOutputsList, learningRate):
         accumulatedDeltas = None
