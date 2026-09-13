@@ -1,3 +1,5 @@
+#script to load mnist dataset to csv files
+
 import csv
 import gzip
 import struct
